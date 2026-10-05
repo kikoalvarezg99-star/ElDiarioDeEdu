@@ -9,8 +9,8 @@ export function friendly(message: string): string {
     return "La contraseña debe tener al menos 6 caracteres.";
   if (m.includes("email not confirmed"))
     return "Debes confirmar tu correo antes de entrar.";
-  if (m.includes("rate limit") || m.includes("too many"))
-    return "Demasiados intentos. Espera un momento y vuelve a probar.";
+  if (m.includes("rate limit") || m.includes("too many") || m.includes("security purposes"))
+    return "Se han enviado demasiados correos en poco tiempo. Espera unos minutos (hasta una hora) y vuelve a probar.";
   if (m.includes("invitación no válida"))
     return "El código no es válido o ha caducado. Pídele uno nuevo a tu dietista.";
   if (m.includes("ya tiene perfil"))

@@ -7,10 +7,12 @@ import { useAuth } from "@/lib/auth";
 import { friendly } from "@/lib/errors";
 import { base, btn, inputCls } from "@/components/ui";
 
+type Mode = "in" | "up" | "reset";
+
 export default function LoginPage() {
   const router = useRouter();
   const { session, loading } = useAuth();
-  const [mode, setMode] = useState<"in" | "up">("in");
+  const [mode, setMode] = useState<Mode>("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,18 +23,25 @@ export default function LoginPage() {
     if (!loading && session) router.replace("/");
   }, [loading, session, router]);
 
+  function changeMode(m: Mode) {
+    setMode(m);
+    setError(null);
+    setInfo(null);
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     setInfo(null);
+
     if (mode === "in") {
       const { error: err } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (err) setError(friendly(err.message));
-    } else {
+    } else if (mode === "up") {
       const { data, error: err } = await supabase.auth.signUp({
         email,
         password,
@@ -42,9 +51,28 @@ export default function LoginPage() {
         setInfo(
           "Te hemos enviado un correo para confirmar tu cuenta. Ábrelo y vuelve aquí para entrar.",
         );
+    } else {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}${base}/restablecer/`,
+      });
+      if (err) setError(friendly(err.message));
+      else
+        setInfo(
+          "Si ese correo tiene cuenta, te llegará un enlace para elegir una contraseña nueva. Revisa también la carpeta de spam.",
+        );
     }
     setBusy(false);
   }
+
+  const tab = (m: Mode, label: string) => (
+    <button
+      type="button"
+      onClick={() => changeMode(m)}
+      className={`rounded-lg py-2 ${mode === m ? "bg-white text-brand shadow-sm" : "text-brand/60"}`}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-brand px-4 py-10">
@@ -55,22 +83,23 @@ export default function LoginPage() {
         className="mb-6 w-36 rounded-2xl"
       />
       <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
-        <div className="mb-5 grid grid-cols-2 rounded-xl bg-brand-soft p-1 text-sm font-semibold">
-          <button
-            type="button"
-            onClick={() => setMode("in")}
-            className={`rounded-lg py-2 ${mode === "in" ? "bg-white text-brand shadow-sm" : "text-brand/60"}`}
-          >
-            Entrar
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("up")}
-            className={`rounded-lg py-2 ${mode === "up" ? "bg-white text-brand shadow-sm" : "text-brand/60"}`}
-          >
-            Crear cuenta
-          </button>
-        </div>
+        {mode !== "reset" && (
+          <div className="mb-5 grid grid-cols-2 rounded-xl bg-brand-soft p-1 text-sm font-semibold">
+            {tab("in", "Entrar")}
+            {tab("up", "Crear cuenta")}
+          </div>
+        )}
+
+        {mode === "reset" && (
+          <div className="mb-4">
+            <h1 className="text-lg font-bold text-brand">
+              ¿Has olvidado tu contraseña?
+            </h1>
+            <p className="mt-1 text-sm text-ink/60">
+              Escribe tu correo y te enviaremos un enlace para elegir una nueva.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={submit} className="space-y-3">
           <input
@@ -82,22 +111,50 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             className={inputCls}
           />
-          <input
-            type="password"
-            required
-            minLength={6}
-            autoComplete={mode === "in" ? "current-password" : "new-password"}
-            placeholder="Contraseña (mínimo 6 caracteres)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={inputCls}
-          />
+          {mode !== "reset" && (
+            <input
+              type="password"
+              required
+              minLength={6}
+              autoComplete={mode === "in" ? "current-password" : "new-password"}
+              placeholder="Contraseña (mínimo 6 caracteres)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={inputCls}
+            />
+          )}
           {error && <p className="text-sm text-red-600">{error}</p>}
           {info && <p className="text-sm text-brand">{info}</p>}
           <button type="submit" disabled={busy} className={`${btn} w-full`}>
-            {busy ? "Un momento…" : mode === "in" ? "Entrar" : "Crear cuenta"}
+            {busy
+              ? "Un momento…"
+              : mode === "in"
+                ? "Entrar"
+                : mode === "up"
+                  ? "Crear cuenta"
+                  : "Enviar enlace"}
           </button>
         </form>
+
+        {mode === "in" && (
+          <button
+            type="button"
+            onClick={() => changeMode("reset")}
+            className="mt-4 w-full text-center text-sm font-medium text-brand underline underline-offset-2"
+          >
+            ¿Has olvidado tu contraseña?
+          </button>
+        )}
+
+        {mode === "reset" && (
+          <button
+            type="button"
+            onClick={() => changeMode("in")}
+            className="mt-4 w-full text-center text-sm font-medium text-brand underline underline-offset-2"
+          >
+            Volver a entrar
+          </button>
+        )}
 
         {mode === "up" && (
           <p className="mt-4 text-xs leading-relaxed text-ink/60">
