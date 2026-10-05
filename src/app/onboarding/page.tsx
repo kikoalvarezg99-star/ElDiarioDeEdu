@@ -7,12 +7,14 @@ import { useAuth } from "@/lib/auth";
 import { friendly } from "@/lib/errors";
 import { Card, Field, Splash, btn, inputCls } from "@/components/ui";
 
+// Nombre interno de la consulta (solo hay una); no se pide a nadie.
+const CLINIC_NAME = "Eduardo Rivero Nutrición";
+
 export default function OnboardingPage() {
   const router = useRouter();
   const { session, profile, loading, refresh, signOut } = useAuth();
   // true = todavía no hay consulta: esta cuenta será la del dietista
   const [setup, setSetup] = useState<boolean | null>(null);
-  const [clinic, setClinic] = useState("");
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
   const [code, setCode] = useState("");
@@ -51,7 +53,7 @@ export default function OnboardingPage() {
     setBusy(true);
     setError(null);
     const { error: err } = await supabase.rpc("create_clinic", {
-      p_name: clinic.trim(),
+      p_name: CLINIC_NAME,
       p_first: first.trim(),
       p_last: last.trim(),
     });
@@ -84,7 +86,7 @@ export default function OnboardingPage() {
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-4 px-4 py-10">
       {setup ? (
         <>
-          <h1 className="text-2xl font-bold text-brand">Configura tu consulta</h1>
+          <h1 className="text-2xl font-bold text-brand">Bienvenido</h1>
           <p className="text-sm text-ink/70">
             Eres la primera persona en entrar, así que esta cuenta será la del
             administrador, con acceso total. Después podrás invitar al dietista
@@ -92,15 +94,6 @@ export default function OnboardingPage() {
           </p>
           <Card>
             <form onSubmit={createClinic} className="space-y-3">
-              <Field label="Nombre de la consulta">
-                <input
-                  required
-                  value={clinic}
-                  onChange={(e) => setClinic(e.target.value)}
-                  className={inputCls}
-                  placeholder="Eduardo Rivero Nutrición"
-                />
-              </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Tu nombre">
                   <input
@@ -120,7 +113,7 @@ export default function OnboardingPage() {
               </div>
               {error && <p className="text-sm text-red-600">{error}</p>}
               <button disabled={busy} className={`${btn} w-full`}>
-                {busy ? "Creando…" : "Crear consulta"}
+                {busy ? "Guardando…" : "Continuar"}
               </button>
             </form>
           </Card>
