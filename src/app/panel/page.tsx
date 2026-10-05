@@ -18,6 +18,7 @@ type ClientRow = {
   user_id: string | null;
 };
 type WeightRow = { value: number; measured_on: string; client_id: string };
+type Req = { id: string; kind: string; client_id: string; created_at: string };
 type ReviewRow = { client_id: string; next_review_on: string };
 
 function PanelContent() {
@@ -27,6 +28,7 @@ function PanelContent() {
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [unread, setUnread] = useState(0);
   const [photos, setPhotos] = useState(0);
+  const [reqs, setReqs] = useState<Req[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -66,6 +68,13 @@ function PanelContent() {
       setClients((c.data ?? []) as unknown as ClientRow[]);
       setWeights((w.data ?? []) as unknown as WeightRow[]);
       setReviews((r.data ?? []) as unknown as ReviewRow[]);
+      const dr = await supabase
+        .from("data_requests")
+        .select("id,kind,client_id,created_at")
+        .eq("status", "pending")
+        .order("created_at");
+      if (!active) return;
+      setReqs((dr.data ?? []) as unknown as Req[]);
       setUnread(m.count ?? 0);
       setPhotos(p.count ?? 0);
       setReady(true);
@@ -118,6 +127,37 @@ function PanelContent() {
         <Stat label="Mensajes sin leer" value={ready ? unread : "…"} />
         <Stat label="Fotos nuevas" value={ready ? photos : "…"} hint="últimos 7 días" />
       </div>
+
+      {reqs.length > 0 && (
+        <Card title="Solicitudes de clientes (RGPD)">
+          <ul className="divide-y divide-black/5">
+            {reqs.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                <span>
+                  <Link href={`/cliente/?id=${r.client_id}`} className="font-medium hover:underline">
+                    {nameOf(r.client_id)}
+                  </Link>{" "}
+                  pide <strong>{r.kind === "delete" ? "borrar su cuenta y datos" : "una copia de sus datos"}</strong>{" "}
+                  <span className="text-xs text-ink/50">({fmtDate(r.created_at)})</span>
+                </span>
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-brand underline"
+                  onClick={async () => {
+                    await supabase.from("data_requests").update({ status: "done" }).eq("id", r.id);
+                    setReqs((x) => x.filter((y) => y.id !== r.id));
+                  }}
+                >
+                  Marcar como atendida
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-ink/50">
+            Para borrar: abre la ficha del cliente → «Borrar cliente y todos sus datos» (solo administrador).
+          </p>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card title="Últimos pesos">

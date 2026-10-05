@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
+import { CONSENT_VERSION } from "@/lib/legal";
 import { useAuth } from "@/lib/auth";
 import { Splash, base } from "./ui";
 
@@ -60,6 +61,29 @@ export default function Shell({
     };
   }, [uid, profile, isStaff, pathname]);
 
+  // Los clientes deben haber dado su consentimiento (RGPD) antes de entrar
+  const [consent, setConsent] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!uid || !profile || isStaff) return;
+    let active = true;
+    supabase
+      .from("consents")
+      .select("id")
+      .eq("user_id", uid)
+      .eq("kind", "health_data")
+      .eq("version", CONSENT_VERSION)
+      .limit(1)
+      .then(({ data }) => {
+        if (!active) return;
+        const ok = (data ?? []).length > 0;
+        setConsent(ok);
+        if (!ok) router.replace("/consentimiento/");
+      });
+    return () => {
+      active = false;
+    };
+  }, [uid, profile, isStaff, router]);
+
   useEffect(() => {
     if (loading) return;
     if (!session) router.replace("/login/");
@@ -68,7 +92,7 @@ export default function Shell({
     else if (area === "client" && isStaff) router.replace("/panel/");
   }, [loading, session, profile, isStaff, area, router]);
 
-  if (loading || !session || !profile || (area === "staff") !== isStaff) {
+  if (loading || !session || !profile || (area === "staff") !== isStaff || (area === "client" && consent !== true)) {
     return <Splash />;
   }
 
@@ -113,6 +137,11 @@ export default function Shell({
                 ? "Dietista"
                 : "Cliente"}
           </p>
+          {area === "client" && (
+            <Link href="/cuenta/" className="mb-1 block text-xs text-white/70 underline underline-offset-2 hover:text-white">
+              Mi cuenta y mis datos
+            </Link>
+          )}
           <button
             onClick={() => void signOut()}
             className="text-xs text-white/70 underline underline-offset-2 hover:text-white"
@@ -131,17 +160,27 @@ export default function Shell({
             alt="Eduardo Rivero"
             className="h-9 w-9 rounded-lg"
           />
-          <button
-            onClick={() => void signOut()}
-            className="text-xs text-white/80 underline underline-offset-2"
-          >
-            Cerrar sesión
-          </button>
+          <span className="flex items-center gap-4">
+            {area === "client" && (
+              <Link href="/cuenta/" className="text-xs text-white/80 underline underline-offset-2">
+                Mi cuenta
+              </Link>
+            )}
+            <button
+              onClick={() => void signOut()}
+              className="text-xs text-white/80 underline underline-offset-2"
+            >
+              Cerrar sesión
+            </button>
+          </span>
         </header>
 
         <main className="mx-auto w-full max-w-5xl p-4 md:p-8">{children}</main>
         <p className="pb-2 text-center text-[10px] text-ink/30">
-          versión {(process.env.NEXT_PUBLIC_BUILD ?? "local").slice(0, 7)}
+          <Link href="/privacidad/" className="underline">
+            Privacidad
+          </Link>{" "}
+          · versión {(process.env.NEXT_PUBLIC_BUILD ?? "local").slice(0, 7)}
         </p>
       </div>
 

@@ -2,7 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 import Shell from "@/components/Shell";
 import { Card, Field, base, btn, btnGhost, inputCls } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
@@ -47,6 +48,8 @@ const emptyForm = {
 
 function Ficha() {
   const params = useSearchParams();
+  const router = useRouter();
+  const { profile } = useAuth();
   const id = params?.get("id") ?? null;
 
   const [client, setClient] = useState<Client | null>(null);
@@ -141,6 +144,50 @@ function Ficha() {
     if (err) setError(friendly(err.message));
     await load();
     setBusy(false);
+  }
+
+  /** Borra todos los archivos del cliente (recursivo) en un bucket. */
+  async function purgeFolder(bucket: string, prefix: string) {
+    const st = supabase.storage.from(bucket);
+    const files: string[] = [];
+    const walk = async (dir: string) => {
+      for (let off = 0; ; off += 100) {
+        const { data, error: err } = await st.list(dir, { limit: 100, offset: off });
+        if (err) throw new Error(err.message);
+        if (!data || data.length === 0) break;
+        for (const f of data) {
+          if (f.id === null) await walk(`${dir}/${f.name}`);
+          else files.push(`${dir}/${f.name}`);
+        }
+        if (data.length < 100) break;
+      }
+    };
+    await walk(prefix);
+    for (let i = 0; i < files.length; i += 100) {
+      const { error: err } = await st.remove(files.slice(i, i + 100));
+      if (err) throw new Error(err.message);
+    }
+  }
+
+  async function eraseClient() {
+    if (!client) return;
+    const typed = window.prompt(
+      `Esto borra para siempre a ${fullName(client)}, su cuenta y TODOS sus datos, fotos y documentos. Escribe BORRAR para confirmar.`,
+    );
+    if (typed !== "BORRAR") return;
+    setBusy(true);
+    setError(null);
+    try {
+      const prefix = `${client.clinic_id}/${client.id}`;
+      await purgeFolder("photos", prefix);
+      await purgeFolder("documents", prefix);
+      const { error: err } = await supabase.rpc("erase_client", { p_client: client.id });
+      if (err) throw new Error(err.message);
+      router.replace("/clientes/");
+    } catch (e) {
+      setError(friendly(e instanceof Error ? e.message : "No se ha podido borrar"));
+      setBusy(false);
+    }
   }
 
   async function addNote(e: FormEvent) {
@@ -338,6 +385,22 @@ function Ficha() {
         canUpload={false}
       />
 
+
+      {profile?.role === "owner" && (
+        <Card title="Zona de peligro">
+          <p className="mb-3 text-sm text-ink/70">
+            Borra al cliente, su cuenta y todos sus datos y archivos (derecho de supresión). No se puede deshacer.
+          </p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void eraseClient()}
+            className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            Borrar cliente y todos sus datos
+          </button>
+        </Card>
+      )}
     </div>
   );
 }
