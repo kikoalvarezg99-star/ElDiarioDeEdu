@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Shell from "@/components/Shell";
 import Evolucion from "@/components/Evolucion";
 import PesoDiario from "@/components/PesoDiario";
+import PlanCliente from "@/components/PlanCliente";
 import { Card } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -64,6 +65,8 @@ function HoyContent() {
         <PesoDiario clientId={me.id} onSaved={() => setEvoKey((k) => k + 1)} />
       )}
 
+      {me && <PlanCliente clientId={me.id} />}
+
       {me && (
         <Evolucion
           key={evoKey}
@@ -90,8 +93,7 @@ function HoyContent() {
 
       <Card title="Próximamente">
         <p className="text-sm text-ink/60">
-          Pronto podrás ver tu plan de comidas, consultar recetas y escribir a
-          tu dietista.
+          Pronto podrás escribir a tu dietista desde aquí.
         </p>
       </Card>
     </div>
