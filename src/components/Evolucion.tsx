@@ -21,6 +21,7 @@ type Meas = {
   value: number;
   measured_on: string;
   source: string;
+  created_at: string;
 };
 
 /**
@@ -32,10 +33,15 @@ export default function Evolucion({
   clientId,
   heightCm,
   staff,
+  only,
+  title,
 }: {
   clientId: string;
   heightCm: number | null;
   staff: boolean;
+  /** Si se indica, solo se muestran los parámetros con estos códigos. */
+  only?: string[];
+  title?: string;
 }) {
   const [types, setTypes] = useState<MType[]>([]);
   const [rows, setRows] = useState<Meas[]>([]);
@@ -53,19 +59,26 @@ export default function Evolucion({
       supabase.from("measurement_types").select("id,code,name,unit").order("name"),
       supabase
         .from("measurements")
-        .select("id,type_id,value,measured_on,source")
+        .select("id,type_id,value,measured_on,source,created_at")
         .eq("client_id", clientId)
         .order("measured_on", { ascending: true })
         .order("created_at", { ascending: true }),
     ]);
-    const ts = (t.data ?? []) as unknown as MType[];
-    // El peso siempre primero
-    ts.sort((a, b) => (a.code === "weight" ? -1 : b.code === "weight" ? 1 : a.name.localeCompare(b.name)));
+    let ts = (t.data ?? []) as unknown as MType[];
+    if (only) {
+      // Solo los parámetros pedidos, en el orden indicado
+      ts = ts
+        .filter((x) => x.code !== null && only.includes(x.code))
+        .sort((a, b) => only.indexOf(a.code ?? "") - only.indexOf(b.code ?? ""));
+    } else {
+      // El peso siempre primero
+      ts.sort((a, b) => (a.code === "weight" ? -1 : b.code === "weight" ? 1 : a.name.localeCompare(b.name)));
+    }
     setTypes(ts);
     setRows((m.data ?? []) as unknown as Meas[]);
     setTypeId((cur) => cur || ts[0]?.id || "");
     setLoaded(true);
-  }, [clientId]);
+  }, [clientId, only]);
 
   useEffect(() => {
     void load();
@@ -76,7 +89,13 @@ export default function Evolucion({
     () =>
       rows
         .filter((r) => r.type_id === typeId)
-        .map((r) => ({ id: r.id, source: r.source, date: r.measured_on, value: Number(r.value) })),
+        .map((r) => ({
+          id: r.id,
+          source: r.source,
+          created_at: r.created_at,
+          date: r.measured_on,
+          value: Number(r.value),
+        })),
     [rows, typeId],
   );
   const first = points[0];
@@ -132,7 +151,7 @@ export default function Evolucion({
   }
 
   return (
-    <Card title="Evolución">
+    <Card title={title ?? "Evolución"}>
       {!loaded ? (
         <p className="text-sm text-ink/50">Cargando…</p>
       ) : types.length === 0 ? (
@@ -235,7 +254,9 @@ export default function Evolucion({
                         {p.source === "client" ? "lo registró el cliente" : "registrado por el equipo"}
                       </span>
                     </span>
-                    {staff && (
+                    {(staff ||
+                      (p.source === "client" &&
+                        Date.now() - new Date(p.created_at).getTime() < 86_400_000)) && (
                       <button
                         type="button"
                         onClick={() => void remove(p.id)}

@@ -510,8 +510,12 @@ begin
   values (auth.uid(), v_clinic, 'owner', p_first, p_last);
   insert into public.measurement_types (clinic_id, code, name, unit) values
     (v_clinic, 'weight',   'Peso',    'kg'),
+    (v_clinic, 'neck',     'Cuello',  'cm'),
+    (v_clinic, 'arm',      'Brazo',   'cm'),
     (v_clinic, 'waist',    'Cintura', 'cm'),
+    (v_clinic, 'abdomen',  'Abdomen', 'cm'),
     (v_clinic, 'hip',      'Cadera',  'cm'),
+    (v_clinic, 'thigh',    'Muslo',   'cm'),
     (v_clinic, 'body_fat', '% grasa', '%');
   insert into public.recipe_categories (clinic_id, name) values
     (v_clinic, 'Desayunos'), (v_clinic, 'Comidas'), (v_clinic, 'Cenas'),

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Shell from "@/components/Shell";
 import Evolucion from "@/components/Evolucion";
+import PesoDiario from "@/components/PesoDiario";
 import { Card } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -15,10 +17,14 @@ type Me = {
   height_cm: number | null;
 };
 
+// Constante fuera del componente para que sea estable entre renders.
+const WEIGHT_ONLY = ["weight"];
+
 function HoyContent() {
   const { profile } = useAuth();
   const [me, setMe] = useState<Me | null>(null);
   const [nextReview, setNextReview] = useState<string | null>(null);
+  const [evoKey, setEvoKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -55,6 +61,33 @@ function HoyContent() {
         <p className="text-sm text-ink/60">Este es tu espacio privado.</p>
       </div>
 
+      {me && (
+        <PesoDiario clientId={me.id} onSaved={() => setEvoKey((k) => k + 1)} />
+      )}
+
+      {me && (
+        <Evolucion
+          key={evoKey}
+          clientId={me.id}
+          heightCm={me.height_cm}
+          staff={false}
+          only={WEIGHT_ONLY}
+          title="Evolución de tu peso"
+        />
+      )}
+
+      <Card title="Medidas corporales">
+        <p className="mb-3 text-sm text-ink/70">
+          Cuello, brazo, cintura, abdomen, cadera y muslo.
+        </p>
+        <Link
+          href="/medidas/"
+          className="inline-flex rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark"
+        >
+          Registrar mis medidas
+        </Link>
+      </Card>
+
       {nextReview && (
         <Card title="Próxima revisión">
           <p className="text-lg font-bold text-brand">{fmtDate(nextReview)}</p>
@@ -66,8 +99,6 @@ function HoyContent() {
           <p className="text-sm">{me.goals}</p>
         </Card>
       )}
-
-      {me && <Evolucion clientId={me.id} heightCm={me.height_cm} staff={false} />}
 
       <Card title="Próximamente">
         <p className="text-sm text-ink/60">
