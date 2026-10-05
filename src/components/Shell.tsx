@@ -12,6 +12,7 @@ const NAV: Record<Area, { href: string; label: string }[]> = {
   staff: [
     { href: "/panel/", label: "Panel" },
     { href: "/clientes/", label: "Clientes" },
+    { href: "/ajustes/", label: "Ajustes" },
   ],
   client: [{ href: "/hoy/", label: "Hoy" }],
 };
@@ -71,7 +72,11 @@ export default function Shell({
         <div className="mt-auto text-sm">
           <p className="font-semibold">{name || "Mi cuenta"}</p>
           <p className="mb-3 text-xs text-white/60">
-            {isStaff ? "Dietista" : "Cliente"}
+            {profile.role === "owner"
+              ? "Administrador"
+              : isStaff
+                ? "Dietista"
+                : "Cliente"}
           </p>
           <button
             onClick={() => void signOut()}

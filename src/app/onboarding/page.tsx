@@ -87,7 +87,8 @@ export default function OnboardingPage() {
           <h1 className="text-2xl font-bold text-brand">Configura tu consulta</h1>
           <p className="text-sm text-ink/70">
             Eres la primera persona en entrar, así que esta cuenta será la del
-            dietista, con acceso a todos los clientes.
+            administrador, con acceso total. Después podrás invitar al dietista
+            desde Ajustes.
           </p>
           <Card>
             <form onSubmit={createClinic} className="space-y-3">
@@ -128,8 +129,8 @@ export default function OnboardingPage() {
         <>
           <h1 className="text-2xl font-bold text-brand">Bienvenido</h1>
           <p className="text-sm text-ink/70">
-            Introduce el código de invitación que te ha dado tu dietista para
-            entrar en tu espacio privado.
+            Introduce el código de invitación que te han dado (tu dietista o el
+            administrador) para entrar.
           </p>
           <Card>
             <form onSubmit={claim} className="space-y-3">
