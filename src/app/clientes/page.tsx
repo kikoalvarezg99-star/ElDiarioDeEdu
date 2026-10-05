@@ -70,7 +70,11 @@ function ClientesContent() {
       setBusy(false);
       return;
     }
-    router.push(`/cliente/?id=${(data as { id: string }).id}`);
+    const newId = (data as { id: string }).id;
+    // Se genera el código de invitación al momento (si falla, se puede crear
+    // después desde la ficha).
+    await supabase.from("client_invites").insert({ client_id: newId });
+    router.push(`/cliente/?id=${newId}`);
   }
 
   const q = query.trim().toLowerCase();

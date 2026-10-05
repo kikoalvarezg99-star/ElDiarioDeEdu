@@ -238,13 +238,26 @@ function Ficha() {
                 <li key={i.code} className="flex flex-wrap items-center gap-3 rounded-xl bg-brand-soft px-4 py-3">
                   <code className="text-lg font-bold tracking-wider text-brand">{i.code}</code>
                   <span className="text-xs text-ink/60">caduca el {fmtDate(i.expires_at)}</span>
-                  <button
-                    type="button"
-                    onClick={() => void navigator.clipboard?.writeText(i.code)}
-                    className={`${btnGhost} ml-auto !py-1.5 text-xs`}
-                  >
-                    Copiar
-                  </button>
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void navigator.clipboard?.writeText(i.code)}
+                      className={`${btnGhost} !py-1.5 text-xs`}
+                    >
+                      Copiar código
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void navigator.clipboard?.writeText(
+                          `Hola ${client.first_name}, ya tienes tu espacio en la app de Eduardo Rivero. Entra en ${registerUrl}, pulsa «Crear cuenta» y, cuando te lo pida, introduce este código de invitación: ${i.code}`,
+                        )
+                      }
+                      className={`${btn} !py-1.5 text-xs`}
+                    >
+                      Copiar mensaje
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
