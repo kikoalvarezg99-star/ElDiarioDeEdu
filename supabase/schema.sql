@@ -595,7 +595,10 @@ create policy profiles_update on public.profiles for update to authenticated
 
 -- clients
 create policy clients_select on public.clients for select to authenticated
-  using (public.can_access_client(id));
+  using (
+    user_id = auth.uid()
+    or (clinic_id = public.current_clinic_id() and public.is_staff())
+  );
 create policy clients_insert on public.clients for insert to authenticated
   with check (public.is_staff());
 create policy clients_update on public.clients for update to authenticated
