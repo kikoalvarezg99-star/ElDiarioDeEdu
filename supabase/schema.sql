@@ -423,9 +423,10 @@ declare
   v_client public.clients%rowtype;
   v_staff  uuid;
   v_actor  uuid;
+  j        jsonb := to_jsonb(new);
 begin
-  select * into v_client from public.clients where id = new.client_id;
-  v_actor := case when tg_table_name = 'messages' then new.sender_id else new.created_by end;
+  select * into v_client from public.clients where id = (j->>'client_id')::uuid;
+  v_actor := case when tg_table_name = 'messages' then (j->>'sender_id')::uuid else (j->>'created_by')::uuid end;
   if v_client.user_id is null or v_actor is distinct from v_client.user_id then
     return new;   -- solo cuando actúa el propio cliente
   end if;
