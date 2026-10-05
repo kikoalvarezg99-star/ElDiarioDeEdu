@@ -1,0 +1,50 @@
+name: Crear APK de Android
+
+# Se ejecuta a mano: GitHub → pestaña Actions → "Crear APK de Android" → Run workflow
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm install
+      # En la app de Android la web va en la raíz (sin /ElDiarioDeEdu)
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_BUILD: ${{ github.sha }}
+
+      - name: Instalar Capacitor
+        run: npm install --no-save @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets
+
+      - run: npx cap add android
+      - name: Icono de la app
+        continue-on-error: true
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#2c5036' --iconBackgroundColorDark '#2c5036'
+      - run: npx cap sync android
+
+      - name: Compilar APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Publicar APK en Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk EduardoRivero.apk
+          gh release create "apk-${{ github.run_number }}" EduardoRivero.apk \
+            --title "App Android (versión ${{ github.run_number }})" \
+            --notes "APK para instalar en Android. Commit ${{ github.sha }}"

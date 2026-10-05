@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Shell from "@/components/Shell";
 import Evolucion from "@/components/Evolucion";
 import PesoDiario from "@/components/PesoDiario";
+import InstalarApp from "@/components/InstalarApp";
 import PlanCliente from "@/components/PlanCliente";
 import { Card } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
@@ -91,11 +92,7 @@ function HoyContent() {
         </Card>
       )}
 
-      <Card title="Próximamente">
-        <p className="text-sm text-ink/60">
-          Pronto podrás escribir a tu dietista desde aquí.
-        </p>
-      </Card>
+      <InstalarApp />
     </div>
   );
 }

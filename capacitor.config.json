@@ -1,0 +1,6 @@
+{
+  "appId": "es.eduardorivero.nutricion",
+  "appName": "Eduardo Rivero",
+  "webDir": "out",
+  "server": { "androidScheme": "https" }
+}
