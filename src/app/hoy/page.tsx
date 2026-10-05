@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Shell from "@/components/Shell";
 import Evolucion from "@/components/Evolucion";
 import PesoDiario from "@/components/PesoDiario";
@@ -76,18 +75,6 @@ function HoyContent() {
         />
       )}
 
-      <Card title="Medidas corporales">
-        <p className="mb-3 text-sm text-ink/70">
-          Cuello, brazo, cintura, abdomen, cadera y muslo.
-        </p>
-        <Link
-          href="/medidas/"
-          className="inline-flex rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark"
-        >
-          Registrar mis medidas
-        </Link>
-      </Card>
-
       {nextReview && (
         <Card title="Próxima revisión">
           <p className="text-lg font-bold text-brand">{fmtDate(nextReview)}</p>
@@ -99,18 +86,6 @@ function HoyContent() {
           <p className="text-sm">{me.goals}</p>
         </Card>
       )}
-
-      <Card title="Diario de comidas">
-        <p className="mb-3 text-sm text-ink/70">
-          Sube cada día una foto de tu desayuno, comida y cena.
-        </p>
-        <Link
-          href="/fotos/"
-          className="inline-flex rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark"
-        >
-          Subir fotos de hoy
-        </Link>
-      </Card>
 
       <Card title="Próximamente">
         <p className="text-sm text-ink/60">
