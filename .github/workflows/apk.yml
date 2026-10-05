@@ -28,12 +28,13 @@ jobs:
           NEXT_PUBLIC_BUILD: ${{ github.sha }}
 
       - name: Instalar Capacitor
-        run: npm install --no-save @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets
+        run: npm install --no-save @capacitor/core @capacitor/cli @capacitor/android
 
       - run: npx cap add android
-      - name: Icono de la app
-        continue-on-error: true
-        run: npx capacitor-assets generate --android --iconBackgroundColor '#2c5036' --iconBackgroundColorDark '#2c5036'
+      - name: Icono de la app (logo de Eduardo Rivero)
+        run: |
+          pip install --break-system-packages pillow || pip install pillow
+          python3 scripts/android_icons.py android/app/src/main/res
       - run: npx cap sync android
 
       - name: Compilar APK
