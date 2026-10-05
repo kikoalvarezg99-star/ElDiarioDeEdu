@@ -12,12 +12,14 @@ const NAV: Record<Area, { href: string; label: string }[]> = {
   staff: [
     { href: "/panel/", label: "Panel" },
     { href: "/clientes/", label: "Clientes" },
+    { href: "/recetas/", label: "Recetas" },
     { href: "/ajustes/", label: "Ajustes" },
   ],
   client: [
     { href: "/hoy/", label: "Hoy" },
     { href: "/medidas/", label: "Medidas" },
     { href: "/fotos/", label: "Fotos" },
+    { href: "/mis-recetas/", label: "Recetas" },
     { href: "/documentos/", label: "Docs" },
   ],
 };

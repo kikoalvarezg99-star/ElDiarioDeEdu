@@ -13,6 +13,7 @@ import Revisiones from "@/components/Revisiones";
 import DiarioComidas from "@/components/DiarioComidas";
 import FotosProgreso from "@/components/FotosProgreso";
 import Documentos from "@/components/Documentos";
+import RecetasCliente from "@/components/RecetasCliente";
 
 type Client = {
   id: string;
@@ -314,6 +315,8 @@ function Ficha() {
         onSaved={() => setEvoKey((k) => k + 1)}
       />
 
+      <RecetasCliente clientId={client.id} />
+
       <Documentos clientId={client.id} clinicId={client.clinic_id} canUpload />
 
       <FotosProgreso
@@ -331,7 +334,7 @@ function Ficha() {
 
       <Card title="Próximamente en esta ficha">
         <p className="text-sm text-ink/60">
-          Plan nutricional, recetas y mensajes se añadirán en las
+          Plan nutricional y mensajes se añadirán en las
           siguientes fases.
         </p>
       </Card>
