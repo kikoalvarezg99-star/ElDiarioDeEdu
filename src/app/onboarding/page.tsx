@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { friendly } from "@/lib/errors";
-import { Card, Field, Splash, btn, btnGhost, inputCls } from "@/components/ui";
+import { Card, Field, Splash, btn, inputCls } from "@/components/ui";
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { session, profile, loading, refresh, signOut } = useAuth();
-  const [choice, setChoice] = useState<"dietitian" | "client" | null>(null);
+  // true = todavía no hay consulta: esta cuenta será la del dietista
+  const [setup, setSetup] = useState<boolean | null>(null);
   const [clinic, setClinic] = useState("");
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
@@ -24,7 +25,26 @@ export default function OnboardingPage() {
     else if (profile) router.replace("/");
   }, [loading, session, profile, router]);
 
-  if (loading || !session || profile) return <Splash />;
+  useEffect(() => {
+    if (!session || profile) return;
+    let active = true;
+    supabase.rpc("setup_available").then(({ data, error: err }) => {
+      if (!active) return;
+      if (err) {
+        setError(
+          "No se ha podido comprobar la configuración. Revisa que la actualización 002 esté ejecutada en Supabase.",
+        );
+        setSetup(false);
+      } else {
+        setSetup(data === true);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [session, profile]);
+
+  if (loading || !session || profile || setup === null) return <Splash />;
 
   async function createClinic(e: FormEvent) {
     e.preventDefault();
@@ -62,86 +82,77 @@ export default function OnboardingPage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-4 px-4 py-10">
-      <h1 className="text-2xl font-bold text-brand">Casi listo</h1>
-      <p className="text-sm text-ink/70">¿Cómo vas a usar la aplicación?</p>
-
-      {!choice && (
-        <div className="grid gap-3">
-          <button onClick={() => setChoice("dietitian")} className={btn}>
-            Soy dietista
-          </button>
-          <button onClick={() => setChoice("client")} className={btnGhost}>
-            Soy cliente y tengo un código de invitación
-          </button>
-        </div>
-      )}
-
-      {choice === "dietitian" && (
-        <Card title="Crear tu consulta">
-          <form onSubmit={createClinic} className="space-y-3">
-            <Field label="Nombre de la consulta">
-              <input
-                required
-                value={clinic}
-                onChange={(e) => setClinic(e.target.value)}
-                className={inputCls}
-                placeholder="Eduardo Rivero Nutrición"
-              />
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Tu nombre">
+      {setup ? (
+        <>
+          <h1 className="text-2xl font-bold text-brand">Configura tu consulta</h1>
+          <p className="text-sm text-ink/70">
+            Eres la primera persona en entrar, así que esta cuenta será la del
+            dietista, con acceso a todos los clientes.
+          </p>
+          <Card>
+            <form onSubmit={createClinic} className="space-y-3">
+              <Field label="Nombre de la consulta">
                 <input
                   required
-                  value={first}
-                  onChange={(e) => setFirst(e.target.value)}
+                  value={clinic}
+                  onChange={(e) => setClinic(e.target.value)}
                   className={inputCls}
+                  placeholder="Eduardo Rivero Nutrición"
                 />
               </Field>
-              <Field label="Apellidos">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Tu nombre">
+                  <input
+                    required
+                    value={first}
+                    onChange={(e) => setFirst(e.target.value)}
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="Apellidos">
+                  <input
+                    value={last}
+                    onChange={(e) => setLast(e.target.value)}
+                    className={inputCls}
+                  />
+                </Field>
+              </div>
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              <button disabled={busy} className={`${btn} w-full`}>
+                {busy ? "Creando…" : "Crear consulta"}
+              </button>
+            </form>
+          </Card>
+        </>
+      ) : (
+        <>
+          <h1 className="text-2xl font-bold text-brand">Bienvenido</h1>
+          <p className="text-sm text-ink/70">
+            Introduce el código de invitación que te ha dado tu dietista para
+            entrar en tu espacio privado.
+          </p>
+          <Card>
+            <form onSubmit={claim} className="space-y-3">
+              <Field label="Código de invitación">
                 <input
-                  value={last}
-                  onChange={(e) => setLast(e.target.value)}
-                  className={inputCls}
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className={`${inputCls} font-mono tracking-wider`}
+                  placeholder="a1b2c3d4e5f60718"
+                  autoCapitalize="none"
                 />
               </Field>
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <button disabled={busy} className={`${btn} w-full`}>
-              {busy ? "Creando…" : "Crear consulta"}
-            </button>
-          </form>
-        </Card>
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              <button disabled={busy} className={`${btn} w-full`}>
+                {busy ? "Comprobando…" : "Entrar en mi espacio"}
+              </button>
+            </form>
+          </Card>
+        </>
       )}
 
-      {choice === "client" && (
-        <Card title="Código de invitación">
-          <form onSubmit={claim} className="space-y-3">
-            <Field label="Código que te ha dado tu dietista">
-              <input
-                required
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className={`${inputCls} font-mono tracking-wider`}
-                placeholder="a1b2c3d4e5f60718"
-                autoCapitalize="none"
-              />
-            </Field>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <button disabled={busy} className={`${btn} w-full`}>
-              {busy ? "Comprobando…" : "Entrar en mi espacio"}
-            </button>
-          </form>
-        </Card>
-      )}
-
-      <div className="flex items-center justify-between text-xs text-ink/60">
-        {choice ? (
-          <button onClick={() => setChoice(null)} className="underline">
-            Volver
-          </button>
-        ) : (
-          <span />
-        )}
+      <div className="text-right text-xs text-ink/60">
         <button onClick={() => void signOut()} className="underline">
           Cerrar sesión
         </button>

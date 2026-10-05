@@ -101,8 +101,8 @@ export default function LoginPage() {
 
         {mode === "up" && (
           <p className="mt-4 text-xs leading-relaxed text-ink/60">
-            Si eres cliente, crea tu cuenta aquí y en el siguiente paso
-            introduce el código que te ha dado tu dietista.
+            Crea tu cuenta con tu correo y una contraseña. En el siguiente paso
+            te pediremos el código de invitación que te ha dado tu dietista.
           </p>
         )}
       </div>

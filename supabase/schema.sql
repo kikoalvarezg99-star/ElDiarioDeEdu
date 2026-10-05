@@ -486,12 +486,22 @@ create trigger n_recipe      after insert on public.recipe_assignments for each 
 -- ALTA DE CLÍNICA E INVITACIONES (sin servidor propio)
 -- =====================================================================
 
--- El dietista, tras registrarse, crea su clínica (queda como owner).
+-- ¿Se puede configurar todavía la consulta? Solo mientras no exista ninguna.
+create or replace function public.setup_available() returns boolean
+language sql stable security definer set search_path = public as $$
+  select not exists (select 1 from public.clinics)
+$$;
+
+-- La PRIMERA cuenta en configurarse queda como dietista (owner). Una vez creada
+-- la consulta, nadie más puede hacerse dietista: el resto entra por invitación.
 create or replace function public.create_clinic(p_name text, p_first text, p_last text)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare v_clinic uuid;
 begin
   if auth.uid() is null then raise exception 'no autenticado'; end if;
+  if exists (select 1 from public.clinics) then
+    raise exception 'la consulta ya está configurada';
+  end if;
   if exists (select 1 from public.profiles where id = auth.uid()) then
     raise exception 'el usuario ya tiene perfil';
   end if;
