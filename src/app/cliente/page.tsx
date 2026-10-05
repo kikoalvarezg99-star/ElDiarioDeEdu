@@ -8,6 +8,8 @@ import { Card, Field, base, btn, btnGhost, inputCls } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 import { friendly } from "@/lib/errors";
 import { fmtDate, fullName } from "@/lib/format";
+import Evolucion from "@/components/Evolucion";
+import Revisiones from "@/components/Revisiones";
 
 type Client = {
   id: string;
@@ -46,6 +48,7 @@ function Ficha() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [noteText, setNoteText] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [evoKey, setEvoKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -282,10 +285,22 @@ function Ficha() {
         )}
       </Card>
 
+      <Evolucion
+        key={evoKey}
+        clientId={client.id}
+        heightCm={client.height_cm}
+        staff
+      />
+
+      <Revisiones
+        clientId={client.id}
+        onSaved={() => setEvoKey((k) => k + 1)}
+      />
+
       <Card title="Próximamente en esta ficha">
         <p className="text-sm text-ink/60">
-          Evolución y gráficas, fotos, plan nutricional, recetas, mensajes,
-          documentos y revisiones se añadirán en las siguientes fases.
+          Fotos, plan nutricional, recetas, mensajes y documentos se añadirán
+          en las siguientes fases.
         </p>
       </Card>
     </div>
