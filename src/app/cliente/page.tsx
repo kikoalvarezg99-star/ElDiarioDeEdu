@@ -13,6 +13,7 @@ import Revisiones from "@/components/Revisiones";
 import DiarioComidas from "@/components/DiarioComidas";
 import FotosProgreso from "@/components/FotosProgreso";
 import Documentos from "@/components/Documentos";
+import Chat from "@/components/Chat";
 import PlanSemanal from "@/components/PlanSemanal";
 import RecetasCliente from "@/components/RecetasCliente";
 
@@ -316,6 +317,8 @@ function Ficha() {
         onSaved={() => setEvoKey((k) => k + 1)}
       />
 
+      <Chat clientId={client.id} otherName={client.first_name} title="Mensajes con el cliente" />
+
       <PlanSemanal clientId={client.id} />
 
       <RecetasCliente clientId={client.id} />
@@ -335,12 +338,6 @@ function Ficha() {
         canUpload={false}
       />
 
-      <Card title="Próximamente en esta ficha">
-        <p className="text-sm text-ink/60">
-          Mensajes se añadirán en las
-          siguientes fases.
-        </p>
-      </Card>
     </div>
   );
 }

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { Splash, base } from "./ui";
 
@@ -21,6 +22,7 @@ const NAV: Record<Area, { href: string; label: string }[]> = {
     { href: "/fotos/", label: "Fotos" },
     { href: "/mis-recetas/", label: "Recetas" },
     { href: "/documentos/", label: "Docs" },
+    { href: "/mensajes/", label: "Chat" },
   ],
 };
 
@@ -34,6 +36,29 @@ export default function Shell({
   const { session, profile, loading, isStaff, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname() ?? "";
+
+  // Avisos sin leer: dietista = avisos de clientes; cliente = mensajes nuevos
+  const [unread, setUnread] = useState(0);
+  const uid = session?.user.id;
+  useEffect(() => {
+    if (!uid || !profile) return;
+    let active = true;
+    const check = async () => {
+      const q = isStaff
+        ? supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).is("read_at", null)
+        : supabase.from("messages").select("id", { count: "exact", head: true }).is("read_at", null).neq("sender_id", uid);
+      const { count } = await q;
+      if (active) setUnread(count ?? 0);
+    };
+    void check();
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") void check();
+    }, 30000);
+    return () => {
+      active = false;
+      clearInterval(t);
+    };
+  }, [uid, profile, isStaff, pathname]);
 
   useEffect(() => {
     if (loading) return;
@@ -73,6 +98,9 @@ export default function Shell({
               }`}
             >
               {it.label}
+              {(it.href === "/clientes/" || it.href === "/mensajes/") && unread > 0 && (
+                <span className="ml-2 rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-black">{unread}</span>
+              )}
             </Link>
           ))}
         </nav>
@@ -123,11 +151,14 @@ export default function Shell({
           <Link
             key={it.href}
             href={it.href}
-            className={`flex-1 py-3.5 text-center text-sm font-semibold ${
+            className={`flex-1 py-3.5 text-center text-xs font-semibold sm:text-sm ${
               isActive(it.href) ? "text-brand" : "text-ink/50"
             }`}
           >
             {it.label}
+            {(it.href === "/clientes/" || it.href === "/mensajes/") && unread > 0 && (
+                <span className="ml-1 rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-black">{unread}</span>
+              )}
           </Link>
         ))}
       </nav>
