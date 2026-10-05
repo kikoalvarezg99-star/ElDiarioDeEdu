@@ -112,6 +112,9 @@ export default function Shell({
         </header>
 
         <main className="mx-auto w-full max-w-5xl p-4 md:p-8">{children}</main>
+        <p className="pb-2 text-center text-[10px] text-ink/30">
+          versión {(process.env.NEXT_PUBLIC_BUILD ?? "local").slice(0, 7)}
+        </p>
       </div>
 
       {/* Navegación inferior (móvil) */}
