@@ -17,6 +17,7 @@ const NAV: Record<Area, { href: string; label: string }[]> = {
   client: [
     { href: "/hoy/", label: "Hoy" },
     { href: "/medidas/", label: "Medidas" },
+    { href: "/fotos/", label: "Fotos" },
   ],
 };
 

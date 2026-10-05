@@ -100,10 +100,22 @@ function HoyContent() {
         </Card>
       )}
 
+      <Card title="Diario de comidas">
+        <p className="mb-3 text-sm text-ink/70">
+          Sube cada día una foto de tu desayuno, comida y cena.
+        </p>
+        <Link
+          href="/fotos/"
+          className="inline-flex rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark"
+        >
+          Subir fotos de hoy
+        </Link>
+      </Card>
+
       <Card title="Próximamente">
         <p className="text-sm text-ink/60">
-          Pronto podrás subir tus fotos, ver tu plan de comidas, consultar
-          recetas y escribir a tu dietista.
+          Pronto podrás ver tu plan de comidas, consultar recetas y escribir a
+          tu dietista.
         </p>
       </Card>
     </div>

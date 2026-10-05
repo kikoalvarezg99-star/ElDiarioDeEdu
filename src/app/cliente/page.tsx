@@ -10,9 +10,12 @@ import { friendly } from "@/lib/errors";
 import { fmtDate, fullName } from "@/lib/format";
 import Evolucion from "@/components/Evolucion";
 import Revisiones from "@/components/Revisiones";
+import DiarioComidas from "@/components/DiarioComidas";
+import FotosProgreso from "@/components/FotosProgreso";
 
 type Client = {
   id: string;
+  clinic_id: string;
   first_name: string;
   last_name: string | null;
   email: string | null;
@@ -310,10 +313,23 @@ function Ficha() {
         onSaved={() => setEvoKey((k) => k + 1)}
       />
 
+      <FotosProgreso
+        clientId={client.id}
+        clinicId={client.clinic_id}
+        canUpload
+        canDelete
+      />
+
+      <DiarioComidas
+        clientId={client.id}
+        clinicId={client.clinic_id}
+        canUpload={false}
+      />
+
       <Card title="Próximamente en esta ficha">
         <p className="text-sm text-ink/60">
-          Fotos, plan nutricional, recetas, mensajes y documentos se añadirán
-          en las siguientes fases.
+          Plan nutricional, recetas, mensajes y documentos se añadirán en las
+          siguientes fases.
         </p>
       </Card>
     </div>
