@@ -156,7 +156,8 @@ function MedidasContent() {
         heightCm={null}
         staff={false}
         only={PERIMETER_CODES}
-        title="Tu evolución de medidas"
+        title="Historial de tus medidas"
+        readOnly
       />
     </div>
   );

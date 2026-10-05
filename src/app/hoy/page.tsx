@@ -71,7 +71,8 @@ function HoyContent() {
           heightCm={me.height_cm}
           staff={false}
           only={WEIGHT_ONLY}
-          title="Evolución de tu peso"
+          title="Historial de tu peso"
+          readOnly
         />
       )}
 

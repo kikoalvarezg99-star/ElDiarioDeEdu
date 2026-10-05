@@ -35,6 +35,7 @@ export default function Evolucion({
   staff,
   only,
   title,
+  readOnly = false,
 }: {
   clientId: string;
   heightCm: number | null;
@@ -42,6 +43,8 @@ export default function Evolucion({
   /** Si se indica, solo se muestran los parámetros con estos códigos. */
   only?: string[];
   title?: string;
+  /** Sin formulario para añadir valores (ya se registran en otro sitio). */
+  readOnly?: boolean;
 }) {
   const [types, setTypes] = useState<MType[]>([]);
   const [rows, setRows] = useState<Meas[]>([]);
@@ -51,6 +54,7 @@ export default function Evolucion({
   const [newName, setNewName] = useState("");
   const [newUnit, setNewUnit] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -208,6 +212,7 @@ export default function Evolucion({
             <LineChart points={points} unit={current?.unit ?? ""} />
           </div>
 
+          {!readOnly && (
           <form onSubmit={add} className="grid gap-3 rounded-xl bg-brand-soft/50 p-4 sm:grid-cols-4">
             <Field label="Parámetro">
               <select value={typeId} onChange={(e) => setTypeId(e.target.value)} className={inputCls}>
@@ -237,6 +242,7 @@ export default function Evolucion({
               </button>
             </div>
           </form>
+          )}
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           {points.length > 0 && (
@@ -245,7 +251,7 @@ export default function Evolucion({
                 Historial
               </h3>
               <ul className="divide-y divide-black/5">
-                {[...points].reverse().slice(0, 12).map((p) => (
+                {[...points].reverse().slice(0, showAll ? 500 : 10).map((p) => (
                   <li key={p.id} className="flex items-center justify-between py-2 text-sm">
                     <span>
                       <strong>{fmtNum(p.value, 2)} {current?.unit}</strong>
@@ -268,10 +274,19 @@ export default function Evolucion({
                   </li>
                 ))}
               </ul>
+              {points.length > 10 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAll((v) => !v)}
+                  className="mt-2 text-xs font-semibold text-brand underline"
+                >
+                  {showAll ? "Ver menos" : `Ver todo el historial (${points.length})`}
+                </button>
+              )}
             </div>
           )}
 
-          {staff && (
+          {staff && !readOnly && (
             <details className="rounded-xl ring-1 ring-black/10">
               <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium text-brand">
                 Añadir un parámetro nuevo (por ejemplo, «Muslo» en cm)
