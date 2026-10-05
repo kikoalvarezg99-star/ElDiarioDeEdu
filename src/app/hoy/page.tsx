@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Shell from "@/components/Shell";
 import Evolucion from "@/components/Evolucion";
 import PesoDiario from "@/components/PesoDiario";
+import AsistentePlatos from "@/components/AsistentePlatos";
 import InstalarApp from "@/components/InstalarApp";
 import PlanCliente from "@/components/PlanCliente";
 import { Card } from "@/components/ui";
@@ -67,6 +68,8 @@ function HoyContent() {
       )}
 
       {me && <PlanCliente clientId={me.id} />}
+
+      {me && <AsistentePlatos />}
 
       {me && (
         <Evolucion
