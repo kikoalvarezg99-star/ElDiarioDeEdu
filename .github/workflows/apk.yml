@@ -20,12 +20,13 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - run: npm install
-      # En la app de Android la web va en la raíz (sin /ElDiarioDeEdu)
-      - run: npm run build
-        env:
-          NEXT_PUBLIC_BASE_PATH: ""
-          NEXT_PUBLIC_BUILD: ${{ github.sha }}
+      # La app Android abre la web publicada (GitHub Pages): cada vez que se
+      # actualiza la web, la app se actualiza sola. Aquí solo hace falta una
+      # página mínima porque Capacitor exige una carpeta de arranque.
+      - name: Página mínima de arranque
+        run: |
+          mkdir -p out
+          echo '<!doctype html><meta charset="utf-8"><title>Eduardo Rivero</title><p>Cargando…</p>' > out/index.html
 
       - name: Instalar Capacitor
         run: npm install --no-save @capacitor/core @capacitor/cli @capacitor/android

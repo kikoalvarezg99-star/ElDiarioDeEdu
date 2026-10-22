@@ -2,5 +2,8 @@
   "appId": "es.eduardorivero.nutricion",
   "appName": "Eduardo Rivero",
   "webDir": "out",
-  "server": { "androidScheme": "https" }
+  "server": {
+    "url": "https://kikoalvarezg99-star.github.io/ElDiarioDeEdu/",
+    "allowNavigation": ["kikoalvarezg99-star.github.io"]
+  }
 }
