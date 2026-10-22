@@ -1,0 +1,31 @@
+name: Mantener Supabase activo
+
+# Supabase (plan gratuito) pausa el proyecto tras una semana sin uso.
+# Este aviso lo "toca" cada día para que no se pause.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tocar la base de datos
+        env:
+          URL: https://hxqmemrwpoytgezktxsv.supabase.co
+          KEY: sb_publishable_9qk8wTAjBRAaPMMSPmEAsA_b-gxWlP0
+        run: |
+          code=$(curl -sS -o /tmp/r.txt -w "%{http_code}" -X POST "$URL/rest/v1/rpc/ping" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{}')
+          echo "ping -> $code"; cat /tmp/r.txt; echo
+          if [ "$code" = "200" ]; then exit 0; fi
+          # Si todavía no existe la función ping (SQL 010), se usa un intento de login
+          # falso: obliga igualmente al servidor a consultar la base de datos.
+          code2=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "$URL/auth/v1/token?grant_type=password" \
+            -H "apikey: $KEY" -H "Content-Type: application/json" \
+            -d '{"email":"ping@invalid.example","password":"x"}')
+          echo "auth -> $code2"
+          # 400 = "credenciales inválidas": el servidor responde, así que está activo
+          if [ "$code2" = "400" ] || [ "$code2" = "422" ]; then exit 0; fi
+          echo "El proyecto no responde (¿pausado?)"; exit 1
