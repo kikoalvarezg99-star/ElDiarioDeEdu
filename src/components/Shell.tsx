@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { CONSENT_VERSION } from "@/lib/legal";
+import AvisosStaff from "./AvisosStaff";
 import { useAuth } from "@/lib/auth";
 import { Splash, base } from "./ui";
 
@@ -54,7 +55,7 @@ export default function Shell({
     void check();
     const t = setInterval(() => {
       if (document.visibilityState === "visible") void check();
-    }, 30000);
+    }, 15000);
     return () => {
       active = false;
       clearInterval(t);
@@ -102,6 +103,7 @@ export default function Shell({
 
   return (
     <div className="min-h-screen md:flex">
+      {isStaff && <AvisosStaff />}
       {/* Barra lateral (ordenador) */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-6 bg-brand p-5 text-white md:flex">
         {/* eslint-disable-next-line @next/next/no-img-element */}
