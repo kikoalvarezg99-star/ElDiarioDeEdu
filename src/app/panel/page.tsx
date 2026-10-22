@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Shell from "@/components/Shell";
+import AdminPanel from "@/components/AdminPanel";
 import { Card, Initials, Stat } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -242,10 +243,16 @@ function PanelContent() {
   );
 }
 
+function PanelSwitch() {
+  const { profile } = useAuth();
+  // El administrador ve la gestión de la app; el dietista, su consulta.
+  return profile?.role === "owner" ? <AdminPanel /> : <PanelContent />;
+}
+
 export default function PanelPage() {
   return (
     <Shell area="staff">
-      <PanelContent />
+      <PanelSwitch />
     </Shell>
   );
 }

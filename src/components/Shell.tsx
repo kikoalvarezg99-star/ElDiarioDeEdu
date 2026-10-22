@@ -11,7 +11,19 @@ import { Splash, base } from "./ui";
 
 type Area = "staff" | "client";
 
-const NAV: Record<Area, { href: string; label: string }[]> = {
+type NavItem = { href: string; label: string; consulta?: boolean };
+
+// El administrador gestiona la app; Clientes y Recetas quedan como "vista de consulta".
+const OWNER_NAV: NavItem[] = [
+  { href: "/panel/", label: "Panel" },
+  { href: "/usuarios/", label: "Usuarios" },
+  { href: "/auditoria/", label: "Auditoría" },
+  { href: "/ajustes/", label: "Ajustes" },
+  { href: "/clientes/", label: "Clientes", consulta: true },
+  { href: "/recetas/", label: "Recetas", consulta: true },
+];
+
+const NAV: Record<Area, NavItem[]> = {
   staff: [
     { href: "/panel/", label: "Panel" },
     { href: "/clientes/", label: "Clientes" },
@@ -97,7 +109,7 @@ export default function Shell({
     return <Splash />;
   }
 
-  const items = NAV[area];
+  const items: NavItem[] = area === "staff" && profile.role === "owner" ? OWNER_NAV : NAV[area];
   const isActive = (href: string) => pathname.startsWith(href.replace(/\/$/, ""));
   const name = `${profile.first_name} ${profile.last_name}`.trim();
 
@@ -113,9 +125,14 @@ export default function Shell({
           className="w-32 rounded-xl"
         />
         <nav className="flex flex-col gap-1">
-          {items.map((it) => (
+          {items.map((it, idx) => (
+            <div key={it.href} className="contents">
+              {it.consulta && !items[idx - 1]?.consulta && (
+                <p className="mt-4 px-3 text-[10px] font-semibold uppercase tracking-wider text-white/40">
+                  Vista de consulta
+                </p>
+              )}
             <Link
-              key={it.href}
               href={it.href}
               className={`rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                 isActive(it.href)
@@ -128,6 +145,7 @@ export default function Shell({
                 <span className="ml-2 rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-black">{unread}</span>
               )}
             </Link>
+            </div>
           ))}
         </nav>
         <div className="mt-auto text-sm">
